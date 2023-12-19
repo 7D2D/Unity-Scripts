@@ -85,6 +85,8 @@ namespace PrefabTools_TE
             public static readonly List<string> OriginNames = new List<string>(){
             "Origin",
             "origin",
+			"Armature",
+			"Root",
             "root", };
 
             public static readonly List<string> HipBoneNames = new List<string>() {
