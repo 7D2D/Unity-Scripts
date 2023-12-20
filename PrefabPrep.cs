@@ -442,6 +442,9 @@ namespace PrefabTools_TE
             List<SkinnedMeshRenderer> allMeshes = CurrentPrefab.GetComponentsInChildren<SkinnedMeshRenderer>().ToList();
             foreach (var mesh in allMeshes)
             {
+                if (mesh.name.Contains("LOD"))
+                    continue;
+
                 if (!mesh.name.StartsWith("sm"))
                     mesh.name = "sm" + mesh.name;
             }
@@ -474,6 +477,9 @@ namespace PrefabTools_TE
 
                 foreach (var mesh in allMeshes)
                 {
+                    if (mesh.name.Contains("LOD"))
+                        continue;
+
                     if (!mesh.name.StartsWith("sm"))
                         mesh.name = "sm" + mesh.name;
 
@@ -745,7 +751,7 @@ namespace PrefabTools_TE
             var iconTagTransform = FindDirectChild(Defs.IconTag);
             if (iconTagTransform == null)
             {
-                Debug.Log($"Creating IconTag object");
+                Debug.Log($"Creating {Defs.IconTag} object");
                 iconTagTransform = new GameObject(Defs.IconTag).transform;
                 iconTagTransform.SetPositionAndRotation(new Vector3(0f, 2f, 0f), Quaternion.identity);
                 iconTagTransform.parent = CurrentPrefab.transform;
@@ -822,7 +828,10 @@ namespace PrefabTools_TE
         {
             CleanupBones();
 
-            AddBreastColliders();
+            AddHipsCollider();
+            AddSpineCollider();
+            //AddBreastColliders();
+            
             AddHeadCollider();
 
             AddCapsuleCollider(LeftArm, LeftForeArm, 0.11f, Tags.LeftArm);
@@ -838,9 +847,10 @@ namespace PrefabTools_TE
             AddCapsuleCollider(RightLeg, RightFoot, 0.1f, Tags.RightLeg);
 
             PrepareJoints();
-            BuildBodies(); // build rigidbodiies
+            BuildBodies(); // build rigidbodies
             BuildJoints(); // build character joints
             CalculateMass(); // redistribute mass across all rigidbodies
+            
         }
 
         public void AddHeadCollider()
@@ -862,7 +872,7 @@ namespace PrefabTools_TE
         public void AddCapsuleCollider(Transform boneFrom, Transform boneTo, float _radius, string _tag)
         {
             Vector3 directionAB = boneTo.position - boneFrom.position;
-            Vector3 midpoint = (boneFrom.position + boneTo.position) * 0.5f;
+            Vector3 midpoint = GetHalfwayPos(boneFrom.position, boneTo.position);
             float distanceAB = Vector3.Distance(boneFrom.position, boneTo.position);
             Transform capsuleTransform = new GameObject(Defs.ColliderName, new System.Type[] { typeof(CapsuleCollider) }).transform;
             capsuleTransform.position = midpoint;
@@ -1062,6 +1072,43 @@ namespace PrefabTools_TE
             return bounds;
         }
 
+        public void AddHipsCollider()
+        {
+            Vector3 midpoint = GetHalfwayPos(Hips.position, Spine1.position);
+            Transform boxTransform = new GameObject(Defs.ColliderName, new System.Type[] { typeof(BoxCollider) }).transform;
+            boxTransform.position = midpoint;
+            boxTransform.tag = Tags.Body;
+           var boxCol = boxTransform.GetComponent<BoxCollider>();
+            Bounds bounds = new Bounds();
+            bounds.Encapsulate(Hips.InverseTransformPoint(new Vector3(LeftArm.position.x, Spine1.position.y, LeftArm.position.z)));
+            bounds.Encapsulate(Hips.InverseTransformPoint(new Vector3(RightArm.position.x, Spine1.position.y, RightArm.position.z)));
+            Vector3 size = bounds.size;
+            size.z = size.x / 1.6F;
+            size.x *= 0.9f;
+            boxCol.size = size;
+            boxCol.material = Constants.ZombieFlesh;
+            boxTransform.parent = Hips;
+            boxTransform.localScale = Vector3.one;
+        }
+
+        public void AddSpineCollider()
+        {
+            Vector3 midpoint = GetHalfwayPos(Spine1.position, Neck.position);
+            Transform boxTransform = new GameObject(Defs.ColliderName, new System.Type[] { typeof(BoxCollider) }).transform;
+            boxTransform.position = midpoint;
+            boxTransform.tag = Tags.Body;
+            var boxCol = boxTransform.GetComponent<BoxCollider>();
+            Bounds bounds = new Bounds();
+            bounds.Encapsulate(Spine1.InverseTransformPoint(new Vector3(LeftArm.position.x, Neck.position.y, LeftArm.position.z)));
+            bounds.Encapsulate(Spine1.InverseTransformPoint(new Vector3(RightArm.position.x, Neck.position.y, RightArm.position.z)));
+            Vector3 size = bounds.size;
+            size.z = size.x / 1.5F;
+            boxCol.size = size;
+            boxCol.material = Constants.ZombieFlesh;
+            boxTransform.parent = Spine1;
+            boxTransform.localScale = Vector3.one;
+        }
+
         public void AddBreastColliders()
         {
             // Middle spine/Spine1 and pelvis/Hips
@@ -1070,13 +1117,14 @@ namespace PrefabTools_TE
                 Bounds bounds;
                 BoxCollider box;
 
-                // Middle spine bounds
+                // Hips
                 bounds = Clip(GetBreastBounds(Hips), Hips, Spine1, false);
                 box = Undo.AddComponent<BoxCollider>(Hips.gameObject);
                 box.center = bounds.center;
                 box.size = bounds.size;
                 box.material = Constants.ZombieFlesh;
 
+                // Middle spine bounds
                 bounds = Clip(GetBreastBounds(Spine1), Spine1, Spine1, true);
                 bounds.Encapsulate(Spine1.InverseTransformPoint(Neck.position));
                 box = Undo.AddComponent<BoxCollider>(Spine1.gameObject);
@@ -1150,8 +1198,7 @@ namespace PrefabTools_TE
 
         public static Bounds Clip(Bounds bounds, Transform relativeTo, Transform clipTransform, bool below)
         {
-            // We prefer the largest axis to be Y in order for the box collider to be placed horizontally instead of vertically
-            int axis = 1; // LargestComponent(bounds.size);
+            int axis = LargestComponent(bounds.size);
 
             if (Vector3.Dot(Constants.WorldUp, relativeTo.TransformPoint(bounds.max)) > Vector3.Dot(Constants.WorldUp, relativeTo.TransformPoint(bounds.min)) == below)
             {
