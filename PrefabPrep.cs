@@ -87,7 +87,8 @@ namespace PrefabTools_TE
             "origin",
             "Armature",
             "Root",
-            "root", };
+            "root",
+            "Character1_Reference", };
 
             public static readonly List<string> HipBoneNames = new List<string>() {
             "Hips",
@@ -98,8 +99,11 @@ namespace PrefabTools_TE
             public static readonly Dictionary<string, string> BoneRenameDict = new Dictionary<string, string>()
             {
                 ["pelvis"] = "Hips",
+                ["spine"] = "Spine",
                 ["spine_01"] = "Spine",
+                ["Chest"] = "Spine1",
                 ["spine_02"] = "Spine1",
+                ["UpperChest"] = "Spine2",
                 ["spine_03"] = "Spine2",
                 ["neck_01"] = "Neck",
                 ["head"] = "Head",
@@ -112,7 +116,9 @@ namespace PrefabTools_TE
                 ["head_01"] = "Head",
                 ["Head_01"] = "Head",
                 ["clavicle_l"] = "LeftShoulder",
+                ["LeftUpperArm"] = "LeftArm",
                 ["upperarm_l"] = "LeftArm",
+                ["LeftLowerArm"] = "LeftForeArm",
                 ["lowerarm_l"] = "LeftForeArm",
                 ["hand_l"] = "LeftHand",
                 ["index_01_l"] = "LeftHandIndex1",
@@ -132,7 +138,9 @@ namespace PrefabTools_TE
                 ["thumb_03_l"] = "LeftHandThumb3",
 
                 ["clavicle_r"] = "RightShoulder",
+                ["RightUpperArm"] = "RightArm",
                 ["upperarm_r"] = "RightArm",
+                ["RightLowerArm"] = "RightForeArm",
                 ["lowerarm_r"] = "RightForeArm",
                 ["hand_r"] = "RightHand",
                 ["index_01_r"] = "RightHandIndex1",
@@ -151,13 +159,19 @@ namespace PrefabTools_TE
                 ["thumb_02_r"] = "RightHandThumb2",
                 ["thumb_03_r"] = "RightHandThumb3",
 
+                ["LeftUpperLeg"] = "LeftUpLeg",
                 ["thigh_l"] = "LeftUpLeg",
+                ["LeftLowerLeg"] = "LeftLeg",
                 ["calf_l"] = "LeftLeg",
                 ["foot_l"] = "LeftFoot",
+                ["LeftToes"] = "LeftToeBase",
                 ["ball_l"] = "LeftToeBase",
+                ["RightUpperLeg"] = "RightUpLeg",
                 ["thigh_r"] = "RightUpLeg",
+                ["RightLowerLeg"] = "RightLeg",
                 ["calf_r"] = "RightLeg",
                 ["foot_r"] = "RightFoot",
+                ["RightToes"] = "RightToeBase",
                 ["ball_r"] = "RightToeBase",
             };
         }
