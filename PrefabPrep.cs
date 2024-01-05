@@ -18,6 +18,10 @@ namespace PrefabTools_TE
     /// 
     /// Ensure you have selected the root game object of the prefab you want to prep
     /// 
+    /// NOTE! **** - This script requires the FBX Exporter package to be installed in your Unity project ****
+    ///              Go to Window -> Package Manager -> Packages: Unity Registry -> FBX Exporter
+    /// 
+    /// 
     /// I can be found in Guppycur's Unofficial 7 Days to Die modding community discord
     /// 
     /// Cheers,
@@ -96,6 +100,7 @@ namespace PrefabTools_TE
             "pelvis",
             "Character1_Hips", };
 
+            #region Bone Dictionary
             public static readonly Dictionary<string, string> BoneRenameDict = new Dictionary<string, string>()
             {
                 ["pelvis"] = "Hips",
@@ -174,6 +179,7 @@ namespace PrefabTools_TE
                 ["RightToes"] = "RightToeBase",
                 ["ball_r"] = "RightToeBase",
             };
+            #endregion
         }
 
         public class Layers
@@ -844,7 +850,6 @@ namespace PrefabTools_TE
 
             AddHipsCollider();
             AddSpineCollider();
-            //AddBreastColliders();
             
             AddHeadCollider();
 
@@ -884,6 +889,17 @@ namespace PrefabTools_TE
         }
 
         public void AddCapsuleCollider(Transform boneFrom, Transform boneTo, float _radius, string _tag)
+        {
+            float distanceAB = Vector3.Distance(boneFrom.position, boneTo.position);
+            var cCol = boneFrom.gameObject.AddComponent<CapsuleCollider>();
+            cCol.height = distanceAB;
+            cCol.radius = _radius;
+            cCol.material = Constants.ZombieFlesh;
+            cCol.tag = _tag;
+            cCol.center = new Vector3(0f, distanceAB * 0.5f, 0f);
+        }
+
+        public void AddCapsuleColliderChild(Transform boneFrom, Transform boneTo, float _radius, string _tag)
         {
             Vector3 directionAB = boneTo.position - boneFrom.position;
             Vector3 midpoint = GetHalfwayPos(boneFrom.position, boneTo.position);
@@ -935,8 +951,8 @@ namespace PrefabTools_TE
                     throw new Exception("Error");
                 }
 
-                Undo.AddComponent<Rigidbody>(bone.anchor.gameObject);
-                bone.anchor.GetComponent<Rigidbody>().mass = bone.density;
+                var rb = Undo.AddComponent<Rigidbody>(bone.anchor.gameObject);
+                rb.mass = bone.density;
             }
         }
 
@@ -1088,39 +1104,34 @@ namespace PrefabTools_TE
 
         public void AddHipsCollider()
         {
-            Vector3 midpoint = GetHalfwayPos(Hips.position, Spine1.position);
-            Transform boxTransform = new GameObject(Defs.ColliderName, new System.Type[] { typeof(BoxCollider) }).transform;
-            boxTransform.position = midpoint;
-            boxTransform.tag = Tags.Body;
-           var boxCol = boxTransform.GetComponent<BoxCollider>();
+            var boxCol = Hips.gameObject.AddComponent<BoxCollider>();
+            boxCol.tag = Tags.Body;
             Bounds bounds = new Bounds();
             bounds.Encapsulate(Hips.InverseTransformPoint(new Vector3(LeftArm.position.x, Spine1.position.y, LeftArm.position.z)));
             bounds.Encapsulate(Hips.InverseTransformPoint(new Vector3(RightArm.position.x, Spine1.position.y, RightArm.position.z)));
+            bounds.Encapsulate(Hips.InverseTransformPoint(new Vector3(LeftArm.position.x, LeftUpLeg.position.y, LeftArm.position.z)));
+            bounds.Encapsulate(Hips.InverseTransformPoint(new Vector3(RightArm.position.x, RightUpLeg.position.y, RightArm.position.z)));
             Vector3 size = bounds.size;
             size.z = size.x / 1.6F;
             size.x *= 0.9f;
             boxCol.size = size;
             boxCol.material = Constants.ZombieFlesh;
-            boxTransform.parent = Hips;
-            boxTransform.localScale = Vector3.one;
+            boxCol.center = bounds.center;
         }
 
         public void AddSpineCollider()
         {
-            Vector3 midpoint = GetHalfwayPos(Spine1.position, Neck.position);
-            Transform boxTransform = new GameObject(Defs.ColliderName, new System.Type[] { typeof(BoxCollider) }).transform;
-            boxTransform.position = midpoint;
-            boxTransform.tag = Tags.Body;
-            var boxCol = boxTransform.GetComponent<BoxCollider>();
+            float len = GetDistance(Spine1.position, Neck.position);
+            var boxCol = Spine1.gameObject.AddComponent<BoxCollider>();// boxTransform.GetComponent<BoxCollider>();
             Bounds bounds = new Bounds();
             bounds.Encapsulate(Spine1.InverseTransformPoint(new Vector3(LeftArm.position.x, Neck.position.y, LeftArm.position.z)));
             bounds.Encapsulate(Spine1.InverseTransformPoint(new Vector3(RightArm.position.x, Neck.position.y, RightArm.position.z)));
             Vector3 size = bounds.size;
             size.z = size.x / 1.5F;
+            boxCol.tag = Tags.Body;
             boxCol.size = size;
             boxCol.material = Constants.ZombieFlesh;
-            boxTransform.parent = Spine1;
-            boxTransform.localScale = Vector3.one;
+            boxCol.center = new Vector3(0f, len * 0.5f, 0f);
         }
 
         public void AddBreastColliders()
