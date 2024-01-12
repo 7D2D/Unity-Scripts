@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:Label text="Prefab Prep by TormentedEmu" style="align-items: center;" />
+    <ui:Button text="Prep" display-tooltip-when-elided="true" name="btnBeginPrep" style="position: absolute; top: 140px; left: 15px; height: 36px; width: 83px; align-items: auto; -unity-text-align: middle-center;" />
+    <uie:ObjectField label="Prefab" name="objSelectedPrefab" type="UnityEngine.Transform, UnityEngine.CoreModule" />
+    <ui:Toggle label="Expand Bounds" name="toggleExpandBounds" value="true" />
+    <ui:TextField picking-mode="Ignore" label="Bounds Multiplier" text="10.0" name="textBoundsMultiplier" />
+    <ui:TextField picking-mode="Ignore" label="Ragdoll Total Mass" value="filler text" text="200" name="textRagdollMass" />
+</ui:UXML>

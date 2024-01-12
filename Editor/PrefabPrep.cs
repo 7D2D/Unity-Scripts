@@ -219,8 +219,14 @@ namespace PrefabTools_TE
             public static readonly Vector3 WorldRight = Vector3.right;
             public static readonly Vector3 WorldUp = Vector3.up;
             public static readonly Vector3 WorldForward = Vector3.forward;
-            public static readonly float RBTotalMass = 200f;
             public static PhysicMaterial ZombieFlesh;
+        }
+
+        public class Config
+        {
+            public static bool ExpandBounds = true;
+            public static float ExpandBoundsMultiplier = 10f;
+            public static float RBTotalMass = 200f;
         }
 
         public GameObject CurrentPrefab;
@@ -244,6 +250,7 @@ namespace PrefabTools_TE
         public Dictionary<Transform, BoneInfo> Bones = new Dictionary<Transform, BoneInfo>();
         public List<BoneInfo> Joints = new List<BoneInfo>();
         public string ExportedFilePath = string.Empty;
+        List<SkinnedMeshRenderer> Meshes = new List<SkinnedMeshRenderer>();
 
         public PrefabPrep()
         {
@@ -457,60 +464,61 @@ namespace PrefabTools_TE
             return renamedBone;
         }
 
+        /// <summary>
+        /// Will rename all the meshes in this prefab to avoid naming conflicts with any skeleton/joint/bone name
+        /// </summary>
+        /// <param name="allMeshes"></param>
         public void CheckMeshNames()
         {
-            List<SkinnedMeshRenderer> allMeshes = CurrentPrefab.GetComponentsInChildren<SkinnedMeshRenderer>().ToList();
-            foreach (var mesh in allMeshes)
+            foreach (var mesh in Meshes)
             {
-                if (mesh.name.Contains("LOD"))
+                if (mesh.name.Contains("LOD")) // ignore renaming if the name already contains LOD
                     continue;
 
-                if (!mesh.name.StartsWith("sm"))
+                if (!mesh.name.StartsWith("sm")) // add the prefix sm which is short for skinned mesh or static mesh
                     mesh.name = "sm" + mesh.name;
             }
         }
-        public bool CheckMeshes()
+
+        public void CheckMeshBounds()
         {
-            List<SkinnedMeshRenderer> allMeshes = CurrentPrefab.GetComponentsInChildren<SkinnedMeshRenderer>().ToList();
-            bool needsExport = false;
+            if (!Config.ExpandBounds) return;
 
-            if (allMeshes.Count > 0)
+            foreach (var mesh in Meshes)
             {
-                var firstMesh = allMeshes.FirstOrDefault(m => m.gameObject.transform.parent != null && m.gameObject.transform.parent == CurrentPrefab.transform);
+                Bounds b = mesh.bounds;
+                b.Expand(Config.ExpandBoundsMultiplier);
+                mesh.localBounds = b;
+            }
+        }
+
+        public void CheckMeshes()
+        {
+            Meshes = CurrentPrefab.GetComponentsInChildren<SkinnedMeshRenderer>().ToList();
+
+            if (Meshes.Count > 0)
+            {
+                CheckMeshTags();
+                CheckMeshNames();
+                CheckMeshBounds();
+            }
+        }
+
+        private void CheckMeshTags()
+        {
+            var firstMesh = Meshes.FirstOrDefault(m => m.gameObject.transform.parent != null && m.gameObject.transform.parent == CurrentPrefab.transform);
+            if (firstMesh == null)
+            {
+                Debug.Log($"Moving mesh to game object root transform.");
+                Unpack();
+                firstMesh = Meshes.FirstOrDefault(m => m.transform.name.ToLower().Contains("body"));
                 if (firstMesh == null)
-                {
-                    Debug.Log($"Moving mesh to object root transform.");
-                    Unpack();
-                    firstMesh = allMeshes.FirstOrDefault(m => m.transform.name.ToLower().Contains("body"));
-                    if (firstMesh == null)
-                        firstMesh = allMeshes.First();
+                    firstMesh = Meshes.First();
 
-                    firstMesh.transform.parent = CurrentPrefab.transform;
-                    firstMesh.tag = Tags.Mesh;
-                    needsExport = true;
-                }
-                else
-                {
-                    Debug.Log($"Found root level mesh: {firstMesh}");
-                    firstMesh.tag = Tags.Mesh;
-                }
-
-                foreach (var mesh in allMeshes)
-                {
-                    if (mesh.name.Contains("LOD"))
-                        continue;
-
-                    if (!mesh.name.StartsWith("sm"))
-                        mesh.name = "sm" + mesh.name;
-
-                    Bounds b = mesh.bounds;
-                    b.Expand(10f);
-                    mesh.localBounds = b;
-
-                }
+                firstMesh.transform.parent = CurrentPrefab.transform;
             }
 
-            return needsExport;
+            firstMesh.tag = Tags.Mesh;
         }
 
         public void ProcessBones()
@@ -1077,7 +1085,7 @@ namespace PrefabTools_TE
             CalculateMassRecurse(hipsBone);
 
             // Rescale the mass so that the whole character weights totalMass
-            float massScale = Constants.RBTotalMass / hipsBone.summedMass;
+            float massScale = Config.RBTotalMass / hipsBone.summedMass;
 
             foreach (BoneInfo bone in Joints)
             {
