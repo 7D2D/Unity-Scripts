@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Editor/MeshBakerStyle_TE.uss?fileID=7433441132597879392&amp;guid=483df582253cf1e4a8f3057b0f64d44a&amp;type=3#MeshBakerStyle_TE" />
+    <ui:Label text="Mesh Baker by TormentedEmu" display-tooltip-when-elided="true" />
+    <uie:ObjectField label="Parent Object" type="UnityEngine.GameObject, UnityEngine.CoreModule" name="objMesh" style="height: 19px; width: auto; position: absolute; top: 35px; left: 9px; right: 15px;" />
+    <ui:Button text="Bake" display-tooltip-when-elided="true" name="btnBake" style="height: 29px; width: auto; position: absolute; top: 180px; left: 11px; align-items: stretch; justify-content: flex-start; right: 15px; flex-direction: row;" />
+    <ui:Toggle label="Export as FBX" name="toggleExportFbx" value="true" style="position: absolute; top: 66px; left: 11px;" />
+    <ui:Toggle label="Save as Prefab" name="toggleSavePrefab" value="true" style="position: absolute; top: 114px; left: 13px; height: 18px; width: 215px;" />
+    <ui:TextField picking-mode="Ignore" label="Fbx Export Path:" name="textfieldFbxExportPath" style="position: absolute; top: 86px; left: 29px; right: 15px; height: 21px;" />
+    <ui:TextField picking-mode="Ignore" label="Prefab Save Path:" name="textfieldPrefabSavePath" style="position: absolute; top: 139px; left: 30px; height: 23px; width: auto; right: 15px;" />
+</ui:UXML>
