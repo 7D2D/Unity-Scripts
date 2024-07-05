@@ -1,6 +1,5 @@
-using System;
 using UnityEngine;
 
-public class AnimatorWeaponRangedReloadState : StateMachineBehaviour
+public class AnimatorWeaponRangedReloadState : ScriptableObject
 {
 }

@@ -1,7 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class UpdateLightOnAllMaterials : MonoBehaviour
+public class UpdateLightOnAllMaterials : UpdateLight
 {
 }
